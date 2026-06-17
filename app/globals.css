@@ -1,0 +1,9 @@
+/* [ПРОБЕЖАТЬСЯ] Базовые стили Tailwind — подключение директив */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* [ПРОБЕЖАТЬСЯ] Базовые стили для body */
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
