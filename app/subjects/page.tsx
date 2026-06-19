@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SubjectCard from "@/components/SubjectCard";
 import type { Subject } from "@/lib/types";
@@ -32,12 +31,10 @@ const subjects: Subject[] = [
 // [ПРОБЕЖАТЬСЯ] Страница со списком всех предметов
 export default function SubjectsPage() {
   const router = useRouter();
-  // [ПРОБЕЖАТЬСЯ] Состояние для модального окна "в разработке"
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
-  // [ПРОБЕЖАТЬСЯ] Обработчик клика по предмету
+  // [ВАЖНО] Обработчик клика по предмету — переход на страницу предмета
   const handleSubjectClick = (subject: Subject) => {
-    setSelectedSubject(subject);
+    router.push(`/subjects/${subject.id}`);
   };
 
   return (
@@ -60,25 +57,6 @@ export default function SubjectsPage() {
           />
         ))}
       </div>
-
-      {/* [ПРОБЕЖАТЬСЯ] Модальное окно "Раздел в разработке" */}
-      {selectedSubject && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full text-center">
-            <div className="text-6xl mb-4">{selectedSubject.icon}</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {selectedSubject.name}
-            </h2>
-            <p className="text-gray-500 mb-6">Раздел в разработке</p>
-            <button
-              onClick={() => setSelectedSubject(null)}
-              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
-            >
-              Назад
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

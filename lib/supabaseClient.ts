@@ -10,3 +10,6 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
+
+
+// берем из файла env данные и экспортируем их дальше, клиентская часть СБШки

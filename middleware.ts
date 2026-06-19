@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+  import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // [ВАЖНО] Middleware — ключевой механизм защиты роутов.
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // [ВАЖНО] Защищённые маршруты — доступны только авторизованным
-  const protectedRoutes = ["/dashboard", "/subjects"];
+  const protectedRoutes = ["/dashboard", "/subjects", "/ent-test", "/ai-assistant"];
 
   // Если пользователь не авторизован и пытается зайти на защищённый маршрут
   if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabaseClient";
@@ -15,14 +15,26 @@ export default function RegisterPage() {
     class_name: "",
     email: "",
     password: "",
+    subject_pair_id: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [subjectPairs, setSubjectPairs] = useState<{ id: string; name: string }[]>([]);
 
   // [ПОЛЕЗНО] Обновление полей формы
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  // [ВАЖНО] Загружаем связки предметов при монтировании
+  useEffect(() => {
+    const loadPairs = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("subject_pairs").select("id, name").order("name");
+      if (data) setSubjectPairs(data);
+    };
+    loadPairs();
+  }, []);
 
   // [ВАЖНО] Обработчик регистрации — вызывает signUp, затем создаёт запись в users
   const handleRegister = async (e: React.FormEvent) => {
@@ -41,6 +53,8 @@ export default function RegisterPage() {
           data: {
             first_name: formData.first_name,
             last_name: formData.last_name,
+            class_name: formData.class_name,
+            subject_pair_id: formData.subject_pair_id || null, // [ВАЖНО] Сохраняем связку
           },
         },
       });
@@ -57,23 +71,10 @@ export default function RegisterPage() {
       return;
     }
 
-    // [ВАЖНО] Шаг 2: Создаём запись в таблице users
-    // Если настроен триггер в БД, этот шаг можно пропустить
-    const { error: insertError } = await supabase.from("users").insert({
-      id: authData.user.id,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      class_name: formData.class_name,
-      subjects: null,
-      ent_date: null,
-      attempts: [],
-    });
-
-    if (insertError) {
-      setError("Ошибка при создании профиля: " + insertError.message);
-      setLoading(false);
-      return;
-    }
+    // [ВАЖНО] Запись в таблице users создаётся автоматически через триггер on_auth_user_created
+    // (см. supabase/migrations/00001_create_users_table.sql)
+    // Ждём немного, чтобы триггер успел выполниться
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // [ВАЖНО] После регистрации редиректим в личный кабинет
     router.push("/dashboard");
@@ -114,6 +115,15 @@ export default function RegisterPage() {
     },
   ] as const;
 
+  // [ВАЖНО] Поле выбора связки предметов (отдельно от текстовых полей)
+  const pairField = {
+    name: "subject_pair_id",
+    label: "Связка предметов ЕНТ",
+    placeholder: "Выберите связку",
+    type: "select" as const,
+    options: subjectPairs,
+  };
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       {/* [ПРОБЕЖАТЬСЯ] Карточка формы регистрации */}
@@ -151,6 +161,29 @@ export default function RegisterPage() {
               />
             </div>
           ))}
+
+          {/* [ВАЖНО] Выбор связки предметов */}
+          <div>
+            <label
+              htmlFor={pairField.name}
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              {pairField.label}
+            </label>
+            <select
+              id={pairField.name}
+              name={pairField.name}
+              value={formData.subject_pair_id}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+            >
+              <option value="">— Выберите связку —</option>
+              {pairField.options.map((opt) => (
+                <option key={opt.id} value={opt.id}>{opt.name}</option>
+              ))}
+            </select>
+          </div>
 
           <button
             type="submit"
